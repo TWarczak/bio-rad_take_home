@@ -7,7 +7,7 @@ Attached in the folder are two files
 Count_matrix.csv
 Peak_names_out.csv
 
-In this dataset, human (hg19) and mount (mm10) cells were mixed together and a single cell sequencing experiment was run. The goal of this experiment was to determine how often droplets are loaded with more than one cell. Each barcode, or column, in the “count matrix” represents a droplet which was loaded with cells. Each row, whose names are denoted by “peak_names_out.csv”, are genes identified by RNA sequencing. 
+In this dataset, human (hg19) and mount (mm10) cells were mixed together and a single cell sequencing experiment was run. The goal of this experiment was to determine how often droplets are loaded with more than one cell. Each barcode, or column, in the “count matrix” represents a droplet which was loaded with cells. Rows are genes identified by RNA sequencing. 
 
 Questions:
 1) Summarize this dataset. How many droplets can you identify that are loaded with more than one cell? Distinguish between Human/Human, Mouse/Human, or Mouse/Mouse multiplets.
