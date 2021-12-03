@@ -7,6 +7,21 @@ output:
     highlight: zenburn
 ---
 
+### Goal: To determine how often droplets are loaded with more than one cell.
+
+### Questions:
+
+1\) Summarize this dataset. How many droplets can you identify that are loaded with
+more than one cell? Distinguish between Human/Human, Mouse/Human, or Mouse/Mouse
+multiplets.
+
+2\) Write an R script which takes the two files attached as arguments and returns
+summary plots as a pdf file and a csv report for the number of droplets with 1 or 2+
+cells identified.
+
+3\) Provide proper documentation, consider common user errors and provide meaningful
+error messages in return.
+
 ```{=html}
 <style type="text/css">
 
@@ -269,16 +284,18 @@ count_tbl_filt <- data.table::fread(here("data", "count_tbl_filt.csv"))
 ```
 
 Data set dimensions (rows, columns)
+
 ```{r}
 dim(count_tbl_filt)
 ```
 
-First 4 rows and 2 columns of `count_tbl_filt`.
+View first 4 rows and 2 columns of `count_tbl_filt`.
+
 ```{r}
 count_tbl_filt[1:4, 1:2]
 ```
 
-Create useful variables from the gene ID (`V1`) column.  
+Create useful variables from the gene ID (`V1`) column.
 
 ```{r}
 count_tbl_filt_2 <- count_tbl_filt %>%
@@ -297,24 +314,33 @@ count_tbl_filt_2 <- count_tbl_filt %>%
 rm(count_tbl_filt)
 ```
 
-Now we can group_by, filter, ... `count_tbl_filt_2` by reference genome, chromosome, or locus. The `drops_with_gene` variable was created earlier when filtering out genes present in < 1% of droplets. 
+Now we can group_by, filter, ... `count_tbl_filt_2` by reference genome, chromosome,
+or locus. The `drops_with_gene` variable was created earlier when filtering out genes
+present in \< 1% of droplets.
 
-First 4 rows and 5 columns of `count_tbl_filt_2`. 
+First 4 rows and 5 columns of `count_tbl_filt_2`.
+
 ```{r}
 count_tbl_filt_2[1:4, 1:5]
 ```
 
-Find total gene read counts for both reference genomes in each droplet. 
+Find total gene read counts for both reference genomes in each droplet.
+
 ```{r}
 count_tbl_sum <- count_tbl_filt_2 %>% 
   group_by(ref_genome) %>% 
   summarise(across(5:last_col(), .fns = sum))
 ```
+
 View total read counts for both reference genomes in first 2 droplets.
+
 ```{r}
 count_tbl_sum[,1:3]
 ```
-Reshape `count_tbl_sum` so droplets are observations (rows). Filter to retain droplets that have > 800 read counts in at least 1 reference genome. 
+
+Reshape `count_tbl_sum` so droplets are observations (rows). Filter to retain
+droplets that have \> 800 read counts in at least 1 reference genome.
+
 ```{r}
 count_tbl_sum_long <- count_tbl_sum %>% 
   pivot_longer(cols = -ref_genome) %>% 
@@ -323,19 +349,25 @@ count_tbl_sum_long <- count_tbl_sum %>%
   filter(total_hg19_counts > 800 | total_mm10_counts > 800)
 ```
 
-View first 4 rows in `count_tbl_sum_long`. 
+View first 4 rows in `count_tbl_sum_long`.
+
 ```{r}
 count_tbl_sum_long[1:4,]
 ```
 
-Create a summary table to tally unique genes expressed in each droplet. This is different than total counts. If a gene in the `count_tbl` is >= 1, `count_tbl_tally` will count it as 1. 
+Create a summary table to tally unique genes expressed in each droplet. This is
+different than total counts. If a gene in the `count_tbl` is \>= 1, `count_tbl_tally`
+will count it as 1.
+
 ```{r }
 count_tbl_tally <- count_tbl_filt_2 %>% 
   group_by(ref_genome) %>% 
   summarise(across(5:last_col(), ~ length(which(.x != 0))))
 ```
 
-Create `drops_filter` to get names of droplets with > 800 read counts in at least 1 reference genome. Then use `drops_filter` to filter `count_tbl_tally`.  
+Create `drops_filter` to get names of droplets with \> 800 read counts in at least 1
+reference genome. Then use `drops_filter` to filter `count_tbl_tally`.
+
 ```{r }
 drops_filter <- count_tbl_sum_long %>% pull(name)
 
@@ -346,12 +378,15 @@ count_tbl_tally_long <- count_tbl_tally %>%
   filter(name %in% drops_filter)
 ```
 
-View first 4 rows in `count_tbl_tally_long`. 
+View first 4 rows in `count_tbl_tally_long`.
+
 ```{r}
 count_tbl_tally_long[1:4,]
 ```
 
-Join `count_tbl_sum_long` and `count_tbl_tally_long` summary tables. Create 2 variables for the ratios of unique_genes/total_counts, one for each reference genome. 
+Join `count_tbl_sum_long` and `count_tbl_tally_long` summary tables. Create 2
+variables for the ratios of unique_genes/total_counts, one for each reference genome.
+
 ```{r }
 count_tbl_join <- count_tbl_sum_long %>% 
   left_join(count_tbl_tally_long, by = "name") %>% 
@@ -359,9 +394,9 @@ count_tbl_join <- count_tbl_sum_long %>%
          mm10_unique_count_ratio = log10(unique_mm10_genes)/log10(total_mm10_counts))
 ```
 
-Add a plot here of log10(hg19 Counts) vs log10(mm10 Counts), no grouping. Just to show its
-easy to identify Mouse + Human doublets. Count those and use that number to find the
-number of expected Human + Human and Mouse + Doublets.
+Add a plot here of log10(hg19 Counts) vs log10(mm10 Counts), no grouping. Just to
+show its easy to identify Mouse + Human doublets. Count those and use that number to
+find the number of expected Human + Human and Mouse + Doublets.
 
 ```{r}
 count_tbl_join  %>% 
@@ -392,9 +427,14 @@ count_tbl_join  %>%
          subtitle = "5,413 Droplets") +
     guides(shape = "none")
 ```
-We now need to identify multiplets (droplets containing multiple cells) Multiplets containing a human and mouse cell are easiest to identify: Droplets with total read counts for both reference genomes > 800 or all droplets in quadrant I.
 
-Count droplets in each quadrant and use those counts to find expected number of multiplets in each quadrant. 
+We now need to identify multiplets (droplets containing multiple cells) Multiplets
+containing a human and mouse cell are easiest to identify: Droplets with total read
+counts for both reference genomes \> 800 or all droplets in quadrant I.
+
+Count droplets in each quadrant and use those counts to find expected number of
+multiplets in each quadrant.
+
 ```{r}
 quad_1_count <- count_tbl_join %>% 
   filter(total_hg19_counts > 800 & total_mm10_counts > 800) %>% 
@@ -415,8 +455,14 @@ expect_quad_2_multi_count <- round(quad_1_count*ratio_quad_2_4, dig = 0)
 expect_quad_4_multi_count <- round(quad_1_count*ratio_quad_4_2, dig = 0)
 ```
 
-`expect_quad_2_multi_count` is the expected n doublets in quadrant II. Droplets containing 2+ human OR 2+ mouse cells can be identified by having lower ratio of unique genes to total read counts in the hg19 or mm10 reference genome, respectively. Droplets containing 1+ human AND 1+ mouse cells will have typical ratios of unique genes to total read counts. 
-Find the value for nth lowest `unique_count_ratio.` Droplets with values <= to the nth lowest `unique_count_ratio` will be classified as multiplets. Remember to filter counts for quadrant II and IV. 
+`expect_quad_2_multi_count` is the expected n doublets in quadrant II. Droplets
+containing 2+ human OR 2+ mouse cells can be identified by having lower ratio of
+unique genes to total read counts in the hg19 or mm10 reference genome, respectively.
+Droplets containing 1+ human AND 1+ mouse cells will have typical ratios of unique
+genes to total read counts. Find the value for nth lowest `unique_count_ratio.`
+Droplets with values \<= to the nth lowest `unique_count_ratio` will be classified as
+multiplets. Remember to filter counts for quadrant II and IV.
+
 ```{r}
 hg19_unique_count_ratio_cutoff <- count_tbl_join %>% 
                                   filter(total_hg19_counts > 800) %>% 
@@ -472,17 +518,22 @@ count_tbl_summary <- count_tbl_join %>%
                                                    "Human")))))
 ```
 
-View new variables in `count_tbl_summary`. 
+View new variables in `count_tbl_summary`.
+
 ```{r}
 glimpse(count_tbl_summary)
 ```
 
-Make sure the number of expected multiplets we calculated in `expect_quad_4_multi_count` and `expect_quad_2_multi_count` match the number of `TRUE` in `count_tbl_summary$hg19_multiplet` and `count_tbl_summary$mm10_multiplet`. 
+Make sure the number of expected multiplets we calculated in
+`expect_quad_4_multi_count` and `expect_quad_2_multi_count` match the number of
+`TRUE` in `count_tbl_summary$hg19_multiplet` and `count_tbl_summary$mm10_multiplet`.
+
 ```{r}
 expect_quad_4_multi_count == count_tbl_summary %>% 
                             filter(hg19_multiplet == TRUE) %>% 
                             nrow()
 ```
+
 ```{r}
 expect_quad_2_multi_count == count_tbl_summary %>% 
                             filter(mm10_multiplet == TRUE) %>% 
@@ -494,7 +545,11 @@ expect_quad_2_multi_count == count_tbl_summary %>%
 # count_tbl_summary <- fread(here("data", "count_tbl_summary.csv"))
 ```
 
-Droplets with 2+ Humand OR 2+ Mouse cells typically have higher read counts per droplet for that reference genome. Droplets with 1+ Humand AND 1+ Mouse cells have typical read counts for each reference genome. View histogram of hg19 and mm10 reads on separate plots. 
+Droplets with 2+ Humand OR 2+ Mouse cells typically have higher read counts per
+droplet for that reference genome. Droplets with 1+ Humand AND 1+ Mouse cells have
+typical read counts for each reference genome. View histogram of hg19 and mm10 reads
+on separate plots.
+
 ```{r}
 count_tbl_summary %>% 
   filter(total_hg19_counts > 800) %>% 
@@ -526,10 +581,12 @@ count_tbl_summary %>%
         legend.text     = element_text(size = rel(0.8)))
 ```
 
+Droplets with 2+ Humand OR 2+ Mouse cells typically have the lowest unique gene count
+to total read count ratios for that reference genome. Droplets with 1+ Humand AND 1+
+Mouse cells have typical ratios for each reference genome.
 
-Droplets with 2+ Humand OR 2+ Mouse cells typically have the lowest unique gene count to total read count ratios for that reference genome. Droplets with 1+ Humand AND 1+ Mouse cells have typical ratios for each reference genome. 
+View histogram of hg19 and mm10 ratios on separate plots.
 
-View histogram of hg19 and mm10 ratios on separate plots. 
 ```{r }
 count_tbl_summary %>% 
   filter(total_hg19_counts > 800) %>% 
@@ -561,7 +618,10 @@ count_tbl_summary %>%
         legend.text     = element_text(size = rel(0.8)))
 ```
 
-Another view of how unique gene count to total gene count ratios and total read counts are good indicators of multiplets. Fit a linear model on `total_hg19_counts` for low count droplets, and see how high count droplets deviate from that model. 
+Another view of how unique gene count to total gene count ratios and total read
+counts are good indicators of multiplets. Fit a linear model on `total_hg19_counts`
+for low count droplets, and see how high count droplets deviate from that model.
+
 ```{r}
 count_tbl_summary %>% 
   filter(total_hg19_counts > 3000) %>% 
@@ -595,6 +655,7 @@ count_tbl_summary %>%
 ```
 
 Same for `total_mm10_counts`.
+
 ```{r}
 count_tbl_summary %>% 
   filter(total_mm10_counts > 3000) %>% 
@@ -627,7 +688,8 @@ count_tbl_summary %>%
          shape    = "Is Multiplet")
 ```
 
-View `total_hg19_counts` vs `total_mm10_counts` without log scaled values. 
+View `total_hg19_counts` vs `total_mm10_counts` without log scaled values.
+
 ```{r}
 count_tbl_summary %>% 
 ggplot(aes(x = total_hg19_counts, y = total_mm10_counts, color = Multiplet_Type)) +
@@ -649,7 +711,9 @@ ggplot(aes(x = total_hg19_counts, y = total_mm10_counts, color = Multiplet_Type)
        color    = "Droplet Contents") +
   guides(shape = "none")
 ```
-View `total_hg19_counts` vs `total_mm10_counts` with log scaled values. 
+
+View `total_hg19_counts` vs `total_mm10_counts` with log scaled values.
+
 ```{r}
 count_tbl_summary  %>% 
   ggplot(aes(x     = total_hg19_counts, 
@@ -685,7 +749,9 @@ count_tbl_summary  %>%
     guides(shape = "none")
 ```
 
-View `total_hg19_counts` vs `total_mm10_counts` with log scaled values, but just the multiplets. 
+View `total_hg19_counts` vs `total_mm10_counts` with log scaled values, but just the
+multiplets.
+
 ```{r}
 count_tbl_summary %>% filter(Multiplet == TRUE)  %>% 
   ggplot(aes(x = total_hg19_counts, y = total_mm10_counts)) +
@@ -721,11 +787,14 @@ count_tbl_summary %>% filter(Multiplet == TRUE)  %>%
     guides(shape = "none")
 ```
 
-Summary table of singlet and multiplet droplets identified. 
+Summary table of singlet and multiplet droplets identified.
+
 ```{r}
-count_tbl_summary %>% 
+droplet_content_summary <- count_tbl_summary %>% 
   group_by(Droplet_Contents) %>% 
-  summarise(n = n()) %>% 
+  summarise(n = n())
+
+droplet_content_summary %>% 
   gt(rowname_col = "Droplet_Contents") %>%
   tab_header(title = "Droplet Contents",
              subtitle = "5413 Total Droplets") %>% 
@@ -738,7 +807,10 @@ count_tbl_summary %>%
               table.border.top.width = px(3))
 ```
 
-Save `count_tbl_summary` for further exploratory data analysis. 
+Save `count_tbl_summary` and `droplet_content_summary` for further exploratory data
+analysis.
+
 ```{r}
 data.table::fwrite(count_tbl_summary, here("data", "count_tbl_summary.csv"))
+data.table::fwrite(droplet_content_summary, here("data", "droplet_content_summary.csv"))
 ```
