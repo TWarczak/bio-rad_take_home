@@ -31,6 +31,7 @@ Before running script, install the following R libraries.
 - install.packages("gt")
 - install.packages("ggtext")
 - install.packages("ggdark")
+- install.packages("rmarkdown")
 
 ## COMMAND LINE
 Clone this repo, and request the file "count_tbl_filt.csv" from me. Place "count_tbl_filt.csv" into the "data" folder. "bio-rad.Rmd" and "data" folder should be located in the same folder. 
