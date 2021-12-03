@@ -530,14 +530,14 @@ Make sure the number of expected multiplets we calculated in
 
 ```{r}
 expect_quad_4_multi_count == count_tbl_summary %>% 
-                            filter(hg19_multiplet == TRUE) %>% 
-                            nrow()
+                             filter(hg19_multiplet == TRUE) %>% 
+                             nrow()
 ```
 
 ```{r}
 expect_quad_2_multi_count == count_tbl_summary %>% 
-                            filter(mm10_multiplet == TRUE) %>% 
-                            nrow()
+                             filter(mm10_multiplet == TRUE) %>% 
+                             nrow()
 ```
 
 ```{r include=FALSE}
