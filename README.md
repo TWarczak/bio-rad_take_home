@@ -19,7 +19,7 @@ Questions:
 
 
 ## EDIT
-The original count_matrix.csv takes up 2.7 GB and was too large for my computer to process. I had to subset the data into smaller chunks, filter out genes that show up in < 1% of droplets, then bind the subsets back together. I call this filtered matrix "count_tbl_filt.csv", which takes up 1.3 GB and can be processed with "bio-rad.Rmd" on my 16 GB Ram 2019 MacBook Air. To see how I performed the initial filtering, view the code chunks at the top part of "bio-rad.Rmd" that have been commented out. The PDF report "bio-rad_report.pdf" begins with "count_tbl_filt.csv" and does not show the initial filtering steps.   
+The original count_matrix.csv takes up 2.7 GB and was too large for my computer to process. I had to subset the data into smaller chunks, filter out genes that show up in < 1% of droplets, then bind the subsets back together. I call this filtered matrix "count_tbl_filt.csv", which takes up 1.3 GB and can be processed with "bio-rad.Rmd" on my 16 GB Ram 2019 MacBook Air. To see how I performed the initial filtering, view the code chunks at the top part of "bio-rad.Rmd" that have been commented out. The PDF report "bio-rad_report.pdf" begins with "count_tbl_filt.csv" and does not show the initial filtering steps. You'll notice I immediately remove large files, using rm(), that are no longer necessary for downstream analysis. That was necessary for me to execute the full script, but might be unnecessary on better machines. 
 
 ## INSTALL LIBRARIES
 Before running script, install the following R libraries. 
