@@ -749,7 +749,7 @@ count_tbl_summary  %>%
           legend.text     = element_text(size = rel(0.75))) +
     annotation_logticks(scaled = FALSE) +
     labs(title    = "Total hg19 & mm10 Read Counts per Droplet",
-         subtitle = "5,197 Droplets",
+         subtitle = "5,413 Droplets",
          color    = "Droplet Contents") +
     guides(shape = "none")
 ```
