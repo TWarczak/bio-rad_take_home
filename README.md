@@ -44,4 +44,4 @@ Example:
 
 Rscript -e "rmarkdown::render('~/Documents/R/bio-rad_take_home/bio-rad.Rmd', output_file='bio-rad_report.pdf')"
 
-This will produce the "bio-rad_report.pdf" and two summary tables, "count_tbl_summary.csv" and "droplet_content_summary.csv", written into the "data" folder.  
+As long as the .Rmd file is in the same folder as the "data" folder that contains the count data "count_tbl_filt.csv", the "bio-rad_report.pdf" will be produced and located next to the .Rmd file. Two summary tables, "count_tbl_summary.csv" and "droplet_content_summary.csv" will also be written into the "data" folder, keeping everything well organized.  
